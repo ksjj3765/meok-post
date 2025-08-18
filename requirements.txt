@@ -1,0 +1,23 @@
+# Post Service Python Dependencies
+# MSA 환경에서 Post 서비스 구축을 위한 핵심 패키지들
+
+# Flask 웹 프레임워크 (API 서버)
+Flask==3.1.1
+
+# 데이터베이스 연동 (MySQL)
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.1.0
+PyMySQL==1.1.1
+
+# 이미지 처리 (S3 연동 시 필요)
+Pillow
+
+# HTTP 클라이언트 (MSA 서비스 간 통신)
+requests
+
+# AWS 연동 (S3, RDS 등)
+boto3
+
+# 개발 도구
+python-dotenv
+

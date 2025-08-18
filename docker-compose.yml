@@ -1,0 +1,68 @@
+# Post Service Local Development Environment
+# Docker Compose로 로컬 개발 환경 구성
+
+version: '3.8'
+
+services:
+  # Post 서비스 (Flask 애플리케이션)
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://root:1234@db:3306/post_service?charset=utf8mb4
+      - ENVIRONMENT=development
+      - USER_SERVICE_URL=http://localhost:8081
+      - NOTIFICATION_SERVICE_URL=http://localhost:8082
+    volumes:
+      - .:/app
+      - ./uploads:/app/uploads
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - post-network
+
+  # MySQL 데이터베이스 (개발용)
+  db:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=post_service
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - post-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  # phpMyAdmin (데이터베이스 관리)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=1234
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - post-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  post-network:
+    driver: bridge
+
+
