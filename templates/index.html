@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Service - 게시판</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .nav-categories {
+            background: white;
+            border-bottom: 2px solid #e0e0e0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap; /* 줄바꿈 방지 */
+            overflow-x: auto; /* 가로 스크롤 허용 */
+        }
+        
+        .category-tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #666;
+            white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+            flex-shrink: 0; /* 탭 크기 고정 */
+        }
+        
+        .category-tab:hover {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .category-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background-color: #f8f9fa;
+        }
+        
+        .category-tab:first-child {
+            margin-left: 0;
+        }
+        
+        /* 카테고리 탭 컨테이너를 flex로 만들기 */
+        #categoryTabs {
+            display: flex;
+            align-items: center;
+        }
+        
+        .main-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .posts-table {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .post-row {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
+        }
+        
+        .post-row:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .post-row:last-child {
+            border-bottom: none;
+        }
+        
+        .post-category {
+            width: 80px;
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .post-title {
+            flex: 1;
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .post-title:hover {
+            color: #667eea;
+        }
+        
+        .post-author {
+            width: 120px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .post-date {
+            width: 100px;
+            text-align: center;
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .post-views {
+            width: 80px;
+            text-align: center;
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .post-likes {
+            width: 80px;
+            text-align: center;
+            color: #e91e63;
+            font-weight: 500;
+        }
+        
+        .write-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #ffc107;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .write-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <div class="header">
+        <h1>📝 Post Service</h1>
+        <p>MSA 아키텍처 기반 게시판 서비스</p>
+    </div>
+    
+            <!-- 카테고리 네비게이션 -->
+        <div class="nav-categories">
+            <div class="nav-container">
+                <!-- 고정 탭 (인기글, 최신순, 내 글) -->
+                <div class="category-tab active" data-category="popular">🔥 인기글</div>
+                <div class="category-tab" data-category="latest">📅 최신순</div>
+                <div class="category-tab" data-category="my_posts">📝 내 글</div>
+                
+                <!-- 동적으로 로드되는 카테고리 탭들 -->
+                <div id="categoryTabs">
+                    <!-- 여기에 카테고리가 자동으로 생성됩니다 -->
+                </div>
+            </div>
+        </div>
+    
+    <!-- 메인 콘텐츠 -->
+    <div class="main-content">
+        <!-- 메시지 표시 영역 -->
+        <div id="message"></div>
+        
+        <!-- 게시글 테이블 -->
+        <div class="posts-table">
+            <div class="table-header">
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 80px;">카테고리</div>
+                    <div style="flex: 1;">제목</div>
+                    <div style="width: 120px; text-align: center;">작성자</div>
+                    <div style="width: 100px; text-align: center;">날짜</div>
+                    <div style="width: 80px; text-align: center;">조회</div>
+                    <div style="width: 80px; text-align: center;">좋아요</div>
+                </div>
+            </div>
+            
+            <div id="postsList">
+                <div class="loading">게시글을 불러오는 중...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 글쓰기 버튼 -->
+    <button class="write-button" onclick="openWritePage()">✏️</button>
+    
+
+    
+    <script>
+        const API_BASE = 'http://localhost:5000/api/v1';
+        let currentCategory = '';
+        let currentSort = 'latest';
+        
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+            loadPosts();
+            setupCategoryTabs();
+        });
+        
+        // 카테고리 탭 설정
+        function setupCategoryTabs() {
+            const tabs = document.querySelectorAll('.category-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 활성 탭 변경
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 카테고리 필터링 및 정렬 설정
+                    const category = this.dataset.category;
+                    if (category === 'popular') {
+                        currentCategory = '';
+                        currentSort = 'popular';
+                    } else if (category === 'latest') {
+                        currentCategory = '';
+                        currentSort = 'latest';
+                    } else if (category === 'my_posts') {
+                        currentCategory = 'my_posts';
+                        currentSort = 'latest';
+                    } else {
+                        currentCategory = category;
+                        currentSort = 'latest';
+                    }
+                    loadPosts();
+                });
+            });
+        }
+        
+        // 카테고리 목록 불러오기
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_BASE}/categories`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    const categories = result.data || [];
+                    createCategoryTabs(categories); // 카테고리 탭 생성
+                } else {
+                    showMessage(`카테고리 목록 조회 오류: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`네트워크 오류: ${error.message}`, 'error');
+            }
+        }
+        
+        // 카테고리 탭 동적 생성
+        function createCategoryTabs(categories) {
+            const tabsContainer = document.getElementById('categoryTabs');
+            
+            let tabsHTML = '';
+            categories.forEach(category => {
+                const icon = getCategoryIcon(category.name);
+                tabsHTML += `
+                    <div class="category-tab" data-category="${category.id}">
+                        ${icon} ${category.name}
+                    </div>
+                `;
+            });
+            
+            tabsContainer.innerHTML = tabsHTML;
+            
+            // 새로 생성된 탭들에 이벤트 리스너 추가
+            setupCategoryTabs();
+        }
+        
+        // 카테고리명에 따른 아이콘 반환
+        function getCategoryIcon(categoryName) {
+            const iconMap = {
+                '질문': '❓',
+                '여행': '✈️',
+                '음식': '🍕',
+                '전자기기': '💻',
+                '패션': '👗',
+                '인기글': '🔥'
+            };
+            return iconMap[categoryName] || '📝';
+        }
+        
+        // 게시글 목록 불러오기
+        async function loadPosts() {
+            try {
+                const postsList = document.getElementById('postsList');
+                postsList.innerHTML = '<div class="loading">게시글을 불러오는 중...</div>';
+                
+                let url = `${API_BASE}/posts?sort=${currentSort}`;
+                if (currentCategory && currentCategory !== 'my_posts') {
+                    url += `&category_id=${currentCategory}`;
+                } else if (currentCategory === 'my_posts') {
+                    url += `&author_id=test_user_001`; // 내 글만 필터링
+                }
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayPosts(result.data || []);
+                } else {
+                    showMessage(`게시글 목록 조회 오류: ${result.message}`, 'error');
+                    postsList.innerHTML = '<div class="empty-state"><h3>게시글을 불러올 수 없습니다</h3><p>잠시 후 다시 시도해주세요.</p></div>';
+                }
+            } catch (error) {
+                console.error('게시글 목록 조회 오류:', error);
+                showMessage(`네트워크 오류: ${error.message}`, 'error');
+                document.getElementById('postsList').innerHTML = '<div class="empty-state"><h3>네트워크 오류</h3><p>서버 연결을 확인해주세요.</p></div>';
+            }
+        }
+        
+        // 게시글 목록 표시
+        function displayPosts(posts) {
+            const postsList = document.getElementById('postsList');
+            
+            if (posts.length === 0) {
+                postsList.innerHTML = '<div class="empty-state"><h3>게시글이 없습니다</h3><p>첫 번째 게시글을 작성해보세요!</p></div>';
+                return;
+            }
+            
+            const postsHTML = posts.map(post => {
+                const categoryName = post.category ? post.category.name : '알 수 없음';
+                const date = new Date(post.created_at).toLocaleDateString('ko-KR');
+                
+                return `
+                    <div class="post-row">
+                        <div class="post-category">${categoryName}</div>
+                        <div class="post-title" onclick="viewPost('${post.id}')">${post.title}</div>
+                        <div class="post-author">${post.author_id}</div>
+                        <div class="post-date">${date}</div>
+                        <div class="post-views">${post.view_count || 0}</div>
+                        <div class="post-likes">
+                            <button onclick="likePost('${post.id}', event)" class="like-btn" style="background: none; border: none; cursor: pointer; font-size: 16px; color: #e91e63;">
+                                ❤️ ${post.like_count || 0}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            postsList.innerHTML = postsHTML;
+        }
+        
+        // 게시글 상세 보기
+        function viewPost(postId) {
+            // 게시글 상세 보기 페이지로 이동
+            window.location.href = `/post?id=${postId}`;
+        }
+        
+        // 게시글 좋아요
+        async function likePost(postId, event) {
+            event.stopPropagation(); // 이벤트 버블링 방지
+            
+            try {
+                const response = await fetch(`${API_BASE}/posts/${postId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: 'test_user_001' // 테스트용 사용자 ID
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('좋아요가 추가되었습니다!', 'success');
+                    loadPosts(); // 목록 새로고침
+                } else if (response.status === 409) {
+                    showMessage('이미 좋아요를 누른 게시글입니다.', 'error');
+                } else {
+                    showMessage(`오류: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`네트워크 오류: ${error.message}`, 'error');
+            }
+        }
+        
+        // 글쓰기 페이지 열기
+        function openWritePage() {
+            let url = '/write';
+            
+            // 현재 선택된 카테고리가 있으면 URL에 포함
+            if (currentCategory && currentCategory !== 'popular' && currentCategory !== 'latest') {
+                url += `?category_id=${currentCategory}`;
+            }
+            
+            window.location.href = url;
+        }
+        
+
+        
+        // 메시지 표시
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="${type}-message">${message}</div>`;
+            
+            // 3초 후 메시지 자동 제거
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+
+    </script>
+</body>
+</html>

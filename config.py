@@ -21,9 +21,17 @@ class Config:
     ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
     
     # 데이터베이스 연결 풀 설정 (성능 최적화)
+    # MySQL/PostgreSQL에서만 사용 가능한 옵션들
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_size': 10,
         'pool_recycle': 3600,
         'pool_pre_ping': True
     }
+
+class TestConfig(Config):
+    """테스트용 설정"""
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    # SQLite는 pool 옵션을 지원하지 않으므로 제거
+    SQLALCHEMY_ENGINE_OPTIONS = {}
 

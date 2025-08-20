@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Service - 게시글 상세 보기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: #5a6fd8;
+        }
+        
+        .post-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .post-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .post-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .post-category {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .post-info {
+            display: flex;
+            gap: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .post-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .post-content {
+            padding: 40px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #444;
+        }
+        
+        .post-actions {
+            padding: 30px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .like-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .like-btn {
+            background: #e91e63;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .like-btn:hover {
+            background: #c2185b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+        }
+        
+        .like-count {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e91e63;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-edit {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 0 15px;
+                margin: 20px auto;
+            }
+            
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-header, .post-content, .post-actions {
+                padding: 20px;
+            }
+            
+            .post-meta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .post-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <div class="header">
+        <h1>📝 Post Service</h1>
+        <p>MSA 아키텍처 기반 게시판 서비스</p>
+    </div>
+    
+    <!-- 메인 콘텐츠 -->
+    <div class="main-content">
+        <!-- 뒤로가기 링크 -->
+        <a href="javascript:history.back()" class="back-link">← 이전 페이지로 돌아가기</a>
+        
+        <!-- 메시지 표시 영역 -->
+        <div id="message"></div>
+        
+        <!-- 게시글 컨테이너 -->
+        <div id="postContainer" class="post-container">
+            <div class="loading">게시글을 불러오는 중...</div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:5000/api/v1';
+        
+        // 페이지 로드 시 게시글 불러오기
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPost();
+        });
+        
+        // URL에서 게시글 ID 가져오기
+        function getPostIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+        
+        // 게시글 불러오기
+        async function loadPost() {
+            const postId = getPostIdFromURL();
+            if (!postId) {
+                showMessage('게시글 ID가 없습니다.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/posts/${postId}`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayPost(result.data);
+                } else {
+                    showMessage(`게시글 조회 오류: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`네트워크 오류: ${error.message}`, 'error');
+            }
+        }
+        
+        // 게시글 표시
+        function displayPost(post) {
+            const container = document.getElementById('postContainer');
+            const date = new Date(post.created_at).toLocaleDateString('ko-KR');
+            const categoryName = post.category ? post.category.name : '알 수 없음';
+            
+            // 내용이 없거나 undefined인 경우 기본값 설정
+            let content = '내용이 없습니다.';
+            if (post.content && post.content.trim() !== '') {
+                content = post.content;
+            } else if (post.content_md && post.content_md.trim() !== '') {
+                content = post.content_md;
+            }
+            
+            container.innerHTML = `
+                <div class="post-header">
+                    <h1 class="post-title">${post.title || '제목 없음'}</h1>
+                    <div class="post-meta">
+                        <div class="post-category">${categoryName}</div>
+                        <div class="post-info">
+                            <span>👤 ${post.author_id || '알 수 없음'}</span>
+                            <span>📅 ${date}</span>
+                            <span>👁️ ${post.view_count || 0}</span>
+                            <span>❤️ ${post.like_count || 0}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="post-content">
+                    ${content}
+                </div>
+                
+                <div class="post-actions">
+                    <div class="like-section">
+                        <button onclick="likePost('${post.id}')" class="like-btn" id="likeBtn">
+                            ❤️ 좋아요
+                        </button>
+                        <span class="like-count">${post.like_count || 0}</span>
+                    </div>
+                    
+                    <div class="action-buttons" id="actionButtons" style="display: none;">
+                        <button onclick="editPost('${post.id}')" class="btn btn-edit">✏️ 수정</button>
+                        <button onclick="deletePost('${post.id}')" class="btn btn-delete">🗑️ 삭제</button>
+                    </div>
+                </div>
+            `;
+            
+            // 내가 쓴 글인지 확인하여 수정/삭제 버튼 표시
+            if (post.author_id === 'test_user_001') {
+                document.getElementById('actionButtons').style.display = 'flex';
+            }
+        }
+        
+
+        
+        // 게시글 좋아요
+        async function likePost(postId) {
+            try {
+                const response = await fetch(`${API_BASE}/posts/${postId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: 'test_user_001'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('좋아요가 추가되었습니다!', 'success');
+                    // 좋아요 수 증가
+                    const likeCount = document.querySelector('.like-count');
+                    if (likeCount) {
+                        const currentCount = parseInt(likeCount.textContent) || 0;
+                        likeCount.textContent = currentCount + 1;
+                    }
+                    // 게시글 새로고침
+                    loadPost();
+                } else if (response.status === 409) {
+                    showMessage('이미 좋아요를 누른 게시글입니다.', 'error');
+                } else {
+                    showMessage(`좋아요 처리 중 오류가 발생했습니다: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`좋아요 처리 중 오류가 발생했습니다: ${error.message}`, 'error');
+            }
+        }
+        
+        // 게시글 수정
+        function editPost(postId) {
+            // 수정 페이지로 이동
+            window.location.href = `/edit?id=${postId}`;
+        }
+        
+        // 게시글 삭제
+        async function deletePost(postId) {
+            if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/posts/${postId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showMessage('게시글이 삭제되었습니다.', 'success');
+                    setTimeout(() => {
+                        // 메인 페이지로 이동
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    const result = await response.json();
+                    showMessage(`삭제 오류: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`네트워크 오류: ${error.message}`, 'error');
+            }
+        }
+        
+        // 메시지 표시
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="${type}-message">${message}</div>`;
+            
+            // 3초 후 메시지 자동 제거
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

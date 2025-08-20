@@ -17,8 +17,9 @@ class Post(db.Model):
     """게시글 기본 정보 (userdb.users와 author_id로 연결)"""
     __tablename__ = 'posts'
     
-    id = db.Column(db.String(26), primary_key=True, default=generate_id)
-    author_id = db.Column(db.String(26), nullable=False, index=True)  # userdb.users.id 참조
+    id = db.Column(db.String(32), primary_key=True, default=generate_id)
+    author_id = db.Column(db.String(32), nullable=False, index=True)  # userdb.users.id 참조
+    category_id = db.Column(db.String(32), db.ForeignKey('categories.id'), nullable=False, index=True)  # 카테고리
     title = db.Column(db.String(200), nullable=False)
     content_md = db.Column(db.Text)  # 마크다운 내용
     content_s3url = db.Column(db.String(512))  # S3 URL
@@ -29,44 +30,36 @@ class Post(db.Model):
     comment_count = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime(3), nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime(3), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # 관계 설정
+    category = db.relationship('Category', backref='posts')
+
+class Category(db.Model):
+    """카테고리 정보"""
+    __tablename__ = 'categories'
+    id = db.Column(db.String(32), primary_key=True, default=generate_id)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    description = db.Column(db.String(200))  # 카테고리 설명
+    created_at = db.Column(db.DateTime(3), nullable=False, default=datetime.utcnow)
 
 class Tag(db.Model):
     """태그 정보"""
     __tablename__ = 'tags'
-    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    id = db.Column(db.String(32), primary_key=True, default=generate_id)
     name = db.Column(db.String(50), nullable=False, unique=True)
 
-class PostTag(db.Model):
-    """게시글-태그 연결 (다대다 관계)"""
-    __tablename__ = 'post_tags'
-    post_id = db.Column(db.String(26), db.ForeignKey('posts.id', ondelete='CASCADE'), primary_key=True)
-    tag_id = db.Column(db.BigInteger, db.ForeignKey('tags.id', ondelete='CASCADE'), primary_key=True)
 
 class PostReaction(db.Model):
-    """게시글 반응 (좋아요/싫어요)"""
+    """게시글 좋아요 (한 유저당 한 게시글에 한 번만)"""
     __tablename__ = 'post_reactions'
-    post_id = db.Column(db.String(26), db.ForeignKey('posts.id', ondelete='CASCADE'), primary_key=True)
-    user_id = db.Column(db.String(26), nullable=False, index=True)  # userdb.users.id 참조
-    type = db.Column(db.Enum('LIKE', 'DISLIKE'), nullable=False, default='LIKE')
+    post_id = db.Column(db.String(32), db.ForeignKey('posts.id', ondelete='CASCADE'), primary_key=True)
+    user_id = db.Column(db.String(32), db.ForeignKey('posts.id', ondelete='CASCADE'), primary_key=True)
     created_at = db.Column(db.DateTime(3), nullable=False, default=datetime.utcnow)
+    
+    # 복합 기본키로 한 유저당 한 게시글에 한 번만 좋아요 가능
+    __table_args__ = (
+        db.PrimaryKeyConstraint('post_id', 'user_id'),
+    )
 
-class PostMedia(db.Model):
-    """게시글 첨부 이미지 (개발: 로컬, 운영: S3)"""
-    __tablename__ = 'post_media'
-    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
-    post_id = db.Column(db.String(26), db.ForeignKey('posts.id', ondelete='CASCADE'), nullable=False, index=True)
-    s3_url = db.Column(db.String(512), nullable=False)
-    mime_type = db.Column(db.String(100))
-    width = db.Column(db.Integer)
-    height = db.Column(db.Integer)
-    created_at = db.Column(db.DateTime(3), nullable=False, default=datetime.utcnow)
 
-class OutboxEvent(db.Model):
-    """이벤트 발행용 (CDC/DMS 수집, MSA 이벤트 스트림)"""
-    __tablename__ = 'outbox_events'
-    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
-    aggregate_id = db.Column(db.String(26), nullable=False, index=True)  # posts.id 등
-    event_type = db.Column(db.String(100), nullable=False)  # POST_CREATED 등
-    payload_json = db.Column(db.JSON, nullable=False)
-    created_at = db.Column(db.DateTime(3), nullable=False, default=datetime.utcnow)
 
