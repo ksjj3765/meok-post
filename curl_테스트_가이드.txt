@@ -1,15 +1,17 @@
-🎯 PowerShell에서 curl로 Post Service 테스트하는 완벽한 가이드
-=============================================================
+🎯 curl로 Post Service 테스트하는 완벽한 가이드
+=============================================
 
-📌 주의사항: PowerShell에서는 'curl'이 'Invoke-WebRequest'의 별칭이므로
-실제 curl을 사용하려면 'curl.exe'를 사용해야 합니다!
+📌 주의사항: 
+- 일반 터미널/쉘에서는 'curl' 명령어 사용
+- PowerShell에서는 'curl'이 'Invoke-WebRequest'의 별칭이므로 'curl.exe' 사용
+- 또는 PowerShell에서 'curl.exe' 대신 'curl.exe' 사용
 
 🚀 기본 API 테스트
 ==================
 
 1. 헬스체크
 -----------
-curl.exe http://localhost:5000/health
+curl http://localhost:5000/health
 
 응답 예시:
 {
@@ -20,7 +22,7 @@ curl.exe http://localhost:5000/health
 
 2. 카테고리 목록 조회
 --------------------
-curl.exe http://localhost:5000/api/v1/categories
+curl http://localhost:5000/api/v1/categories
 
 응답 예시:
 {
@@ -45,7 +47,7 @@ curl.exe http://localhost:5000/api/v1/categories
 
 3. 게시글 목록 조회
 ------------------
-curl.exe http://localhost:5000/api/v1/posts
+curl http://localhost:5000/api/v1/posts
 
 응답 예시:
 {
@@ -62,81 +64,81 @@ curl.exe http://localhost:5000/api/v1/posts
 
 4. 게시글 목록 (페이지네이션)
 ----------------------------
-curl.exe "http://localhost:5000/api/v1/posts?page=1&per_page=5"
+curl "http://localhost:5000/api/v1/posts?page=1&per_page=5"
 
 5. 게시글 검색
 --------------
-curl.exe "http://localhost:5000/api/v1/posts?q=테스트"
+curl "http://localhost:5000/api/v1/posts?q=테스트"
 
 6. 카테고리별 게시글 조회
 ------------------------
-curl.exe "http://localhost:5000/api/v1/posts?category_id=781f7e257eae4a4d8041e0f62ee8810b"
+curl "http://localhost:5000/api/v1/posts?category_id=781f7e257eae4a4d8041e0f62ee8810b"
 
 7. 정렬 방식별 게시글 조회
 -------------------------
 # 최신순 (기본값)
-curl.exe "http://localhost:5000/api/v1/posts?sort=latest"
+curl "http://localhost:5000/api/v1/posts?sort=latest"
 
 # 인기순
-curl.exe "http://localhost:5000/api/v1/posts?sort=popular"
+curl "http://localhost:5000/api/v1/posts?sort=popular"
 
 🌐 웹페이지 테스트
 ==================
 
 8. 메인 페이지 로드
 ------------------
-curl.exe http://localhost:5000/
+curl http://localhost:5000/
 
 9. 글쓰기 페이지 로드
 --------------------
-curl.exe http://localhost:5000/write
+curl http://localhost:5000/write
 
 10. 게시글 상세 페이지 로드
 -------------------------
-curl.exe http://localhost:5000/post
+curl http://localhost:5000/post
 
 11. 게시글 수정 페이지 로드
 -------------------------
-curl.exe http://localhost:5000/edit
+curl http://localhost:5000/edit
 
 📝 게시글 CRUD 테스트
 ====================
 
 12. 새 게시글 생성
 -----------------
-curl.exe -X POST ^
+curl -X POST ^
   -H "Content-Type: application/json" ^
   -d "{\"title\":\"테스트 게시글\",\"content\":\"테스트 내용입니다.\",\"author_id\":\"test_user_001\",\"category_id\":\"781f7e257eae4a4d8041e0f62ee8810b\"}" ^
   http://localhost:5000/api/v1/posts
 
 13. 게시글 수정 (PUT)
 --------------------
-curl.exe -X PUT ^
+curl -X PUT ^
   -H "Content-Type: application/json" ^
   -d "{\"title\":\"수정된 제목\",\"content\":\"수정된 내용\",\"author_id\":\"test_user_001\"}" ^
   http://localhost:5000/api/v1/posts/{POST_ID}
 
 14. 게시글 부분 수정 (PATCH)
 ---------------------------
-curl.exe -X PATCH ^
+curl -X PATCH ^
   -H "Content-Type: application/json" ^
   -d "{\"title\":\"부분 수정된 제목\"}" ^
   http://localhost:5000/api/v1/posts/{POST_ID}
 
 15. 게시글 삭제
 --------------
-curl.exe -X DELETE http://localhost:5000/api/v1/posts/{POST_ID}
+curl -X DELETE http://localhost:5000/api/v1/posts/{POST_ID}
 
 16. 게시글 상세 조회
 ------------------
-curl.exe http://localhost:5000/api/v1/posts/{POST_ID}
+curl http://localhost:5000/api/v1/posts/{POST_ID}
 
 💖 반응(좋아요) 테스트
 ======================
 
 17. 게시글 좋아요
 ----------------
-curl.exe -X POST ^
+curl -X POST ^
   -H "Content-Type: application/json" ^
   -d "{\"user_id\":\"test_user_001\"}" ^
   http://localhost:5000/api/v1/posts/{POST_ID}/like
@@ -146,25 +148,25 @@ curl.exe -X POST ^
 
 18. 새 카테고리 생성
 ------------------
-curl.exe -X POST ^
+curl -X POST ^
   -H "Content-Type: application/json" ^
   -d "{\"name\":\"새 카테고리\",\"description\":\"새로 만든 카테고리입니다.\"}" ^
   http://localhost:5000/api/v1/categories
 
 19. 특정 카테고리 조회
 --------------------
-curl.exe http://localhost:5000/api/v1/categories/{CATEGORY_ID}
+curl http://localhost:5000/api/v1/categories/{CATEGORY_ID}
 
 🏷️ 태그 관리 테스트
 ===================
 
 20. 태그 목록 조회
 ----------------
-curl.exe http://localhost:5000/api/v1/tags
+curl http://localhost:5000/api/v1/tags
 
 21. 새 태그 생성
 ---------------
-curl.exe -X POST ^
+curl -X POST ^
   -H "Content-Type: application/json" ^
   -d "{\"name\":\"새태그\"}" ^
   http://localhost:5000/api/v1/tags
@@ -174,109 +176,110 @@ curl.exe -X POST ^
 
 22. 상세 정보와 함께 확인 (헤더 포함)
 -----------------------------------
-curl.exe -v http://localhost:5000/health
+curl -v http://localhost:5000/health
 
 23. 응답 헤더만 확인
 -------------------
-curl.exe -I http://localhost:5000/health
+curl -I http://localhost:5000/health
 
 24. 응답 시간 측정
 -----------------
-curl.exe -w "응답시간: %{time_total}초\n" http://localhost:5000/health
+curl -w "응답시간: %{time_total}초\n" http://localhost:5000/health
 
 25. HTTP 상태 코드만 확인
 ------------------------
-curl.exe -s -o /dev/null -w "%{http_code}" http://localhost:5000/health
+curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/health
 
 26. 특정 헤더 추가
 -----------------
-curl.exe -H "User-Agent: PostService-Test" http://localhost:5000/health
+curl -H "User-Agent: PostService-Test" http://localhost:5000/health
 
 27. 쿠키 전송
 -------------
-curl.exe -b "session=test123" http://localhost:5000/health
+curl -b "session=test123" http://localhost:5000/health
 
 28. 리다이렉트 따라가기
 ----------------------
-curl.exe -L http://localhost:5000/health
+curl -L http://localhost:5000/health
 
 29. 타임아웃 설정
 ----------------
-curl.exe --max-time 5 http://localhost:5000/health
+curl --max-time 5 http://localhost:5000/health
 
 30. 재시도 설정
 --------------
-curl.exe --retry 3 http://localhost:5000/health
+curl --retry 3 http://localhost:5000/health
 
 📊 응답 데이터 처리
 ===================
 
 31. JSON 응답을 예쁘게 출력 (Windows)
 -----------------------------------
-curl.exe -s http://localhost:5000/api/v1/categories | python -m json.tool
+curl -s http://localhost:5000/api/v1/categories | python -m json.tool
 
 32. 특정 내용만 필터링
 ---------------------
-curl.exe -s http://localhost:5000/api/v1/categories | findstr "name"
+curl -s http://localhost:5000/api/v1/categories | findstr "name"
 
 33. 응답을 파일로 저장
 ---------------------
-curl.exe -o response.json http://localhost:5000/api/v1/categories
+curl -o response.json http://localhost:5000/api/v1/categories
 
 34. 응답 헤더를 파일로 저장
 -------------------------
-curl.exe -D headers.txt http://localhost:5000/api/v1/categories
+curl -D headers.txt http://localhost:5000/api/v1/categories
 
 🔧 문제 해결 테스트
 ===================
 
 35. 연결 테스트
 --------------
-curl.exe --connect-timeout 10 http://localhost:5000/health
+curl --connect-timeout 10 http://localhost:5000/health
 
 36. SSL 검증 건너뛰기 (HTTPS인 경우)
 ----------------------------------
-curl.exe -k https://localhost:5000/health
+curl -k https://localhost:5000/health
 
 37. 프록시 설정
 --------------
-curl.exe -x proxy.example.com:8080 http://localhost:5000/health
+curl -x proxy.example.com:8080 http://localhost:5000/health
 
 38. 사용자 인증 (필요한 경우)
 ---------------------------
-curl.exe -u username:password http://localhost:5000/health
+curl -u username:password http://localhost:5000/health
 
 📋 테스트 시나리오
 ==================
 
 시나리오 1: 기본 기능 테스트
 ----------------------------
-1. curl.exe http://localhost:5000/health
-2. curl.exe http://localhost:5000/api/v1/categories
-3. curl.exe http://localhost:5000/api/v1/posts
+1. curl http://localhost:5000/health
+2. curl http://localhost:5000/api/v1/categories
+3. curl http://localhost:5000/api/v1/posts
 
 시나리오 2: 게시글 생명주기 테스트
 --------------------------------
-1. curl.exe -X POST -H "Content-Type: application/json" -d "{\"title\":\"테스트\",\"content\":\"내용\",\"author_id\":\"test_user_001\",\"category_id\":\"781f7e257eae4a4d8041e0f62ee8810b\"}" http://localhost:5000/api/v1/posts
+1. curl -X POST -H "Content-Type: application/json" -d "{\"title\":\"테스트\",\"content\":\"내용\",\"author_id\":\"test_user_001\",\"category_id\":\"781f7e257eae4a4d8041e0f62ee8810b\"}" http://localhost:5000/api/v1/posts
 2. 응답에서 post_id 추출
-3. curl.exe http://localhost:5000/api/v1/posts/{POST_ID}
-4. curl.exe -X PUT -H "Content-Type: application/json" -d "{\"title\":\"수정된 제목\"}" http://localhost:5000/api/v1/posts/{POST_ID}
-5. curl.exe -X DELETE http://localhost:5000/api/v1/posts/{POST_ID}
+3. curl http://localhost:5000/api/v1/posts/{POST_ID}
+4. curl -X PUT -H "Content-Type: application/json" -d "{\"title\":\"수정된 제목\"}" http://localhost:5000/api/v1/posts/{POST_ID}
+5. curl -X DELETE http://localhost:5000/api/v1/posts/{POST_ID}
 
 시나리오 3: 성능 테스트
 ----------------------
-1. curl.exe -w "응답시간: %{time_total}초\n" http://localhost:5000/health
-2. curl.exe -w "응답시간: %{time_total}초\n" http://localhost:5000/api/v1/categories
-3. curl.exe -w "응답시간: %{time_total}초\n" http://localhost:5000/api/v1/posts
+1. curl -w "응답시간: %{time_total}초\n" http://localhost:5000/health
+2. curl -w "응답시간: %{time_total}초\n" http://localhost:5000/api/v1/categories
+3. curl -w "응답시간: %{time_total}초\n" http://localhost:5000/api/v1/posts
 
 💡 유용한 팁
 ============
 
-1. PowerShell에서 curl 대신 curl.exe 사용
-2. 긴 명령어는 ^ (캐럿)으로 줄바꿈
-3. JSON 데이터는 이스케이프 처리 필요
-4. 응답 확인을 위해 -v 옵션 활용
-5. 자동화를 위해 -s (silent) 옵션 사용
+1. 일반 터미널/쉘에서는 'curl' 명령어 사용
+2. PowerShell에서는 'curl.exe' 사용 (또는 'curl.exe' 사용)
+3. 긴 명령어는 ^ (캐럿)으로 줄바꿈
+4. JSON 데이터는 이스케이프 처리 필요
+5. 응답 확인을 위해 -v 옵션 활용
+6. 자동화를 위해 -s (silent) 옵션 사용
 
 🚨 주의사항
 ===========
@@ -284,8 +287,9 @@ curl.exe -u username:password http://localhost:5000/health
 1. POST/PUT 요청 시 Content-Type 헤더 필수
 2. JSON 데이터의 따옴표 이스케이프 처리
 3. Windows에서 ^ 문자 사용 시 주의
-4. 포트 5000이 사용 가능한지 확인
-5. 도커 컨테이너가 실행 중인지 확인
+4. PowerShell에서는 curl.exe 사용 권장
+5. 포트 5000이 사용 가능한지 확인
+6. 도커 컨테이너가 실행 중인지 확인
 
 🎯 결론
 =======
