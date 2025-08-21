@@ -3,15 +3,41 @@ Post Service Business Logic Layer
 비즈니스 로직을 담당하는 서비스 클래스들입니다.
 """
 
-from .models import db, Post, PostReaction
+from .models import db, Post, PostReaction, Category
 from datetime import datetime
 import uuid
+
+class CategoryService:
+    """카테고리 관련 비즈니스 로직"""
+    
+    @staticmethod
+    def get_all_categories():
+        """모든 카테고리 조회"""
+        return Category.query.order_by(Category.name).all()
+    
+    @staticmethod
+    def get_category(category_id):
+        """카테고리 조회"""
+        return Category.query.get(category_id)
+    
+    @staticmethod
+    def create_category(name, description=None):
+        """카테고리 생성"""
+        category = Category(
+            id=str(uuid.uuid4()).replace('-', ''),
+            name=name,
+            description=description
+        )
+        
+        db.session.add(category)
+        db.session.commit()
+        return category
 
 class PostService:
     """게시글 관련 비즈니스 로직"""
     
     @staticmethod
-    def create_post(title, content_md, content_s3url, author_id, visibility='PUBLIC', status='DRAFT'):
+    def create_post(title, content_md, content_s3url, author_id, category_id, visibility='PUBLIC', status='DRAFT'):
         """게시글 생성"""
         post = Post(
             id=str(uuid.uuid4()).replace('-', ''),
@@ -19,6 +45,7 @@ class PostService:
             content_md=content_md,
             content_s3url=content_s3url,
             author_id=author_id,
+            category_id=category_id,
             visibility=visibility,
             status=status
         )
@@ -35,6 +62,17 @@ class PostService:
             post.view_count += 1
             db.session.commit()
         return post
+    
+    @staticmethod
+    def get_posts_by_category(category_id, page=1, per_page=10):
+        """카테고리별 게시글 조회"""
+        return Post.query.filter_by(
+            category_id=category_id, 
+            visibility='PUBLIC', 
+            status='PUBLISHED'
+        ).order_by(Post.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
     
     @staticmethod
     def update_post(post_id, **kwargs):
@@ -69,20 +107,24 @@ class PostService:
         query = Post.query.filter_by(visibility=visibility, status=status)
         
         if q:
-            query = query.filter(db.text("MATCH(title, content_md) AGAINST(:q IN BOOLEAN MODE)"), q=q)
+            # SQLite에서는 MATCH AGAINST를 지원하지 않으므로 LIKE 검색 사용
+            query = query.filter(
+                db.or_(
+                    Post.title.like(f'%{q}%'),
+                    Post.content_md.like(f'%{q}%')
+                )
+            )
         
         return query.order_by(Post.created_at.desc()).paginate(
             page=page, per_page=per_page, error_out=False
         )
 
-
-
 class ReactionService:
     """반응 관련 비즈니스 로직"""
     
     @staticmethod
-    def toggle_reaction(post_id, user_id, action):
-        """게시글 반응 토글"""
+    def toggle_reaction(post_id, user_id):
+        """게시글 좋아요 토글"""
         post = Post.query.get(post_id)
         if not post:
             return None
@@ -92,30 +134,14 @@ class ReactionService:
         ).first()
         
         if existing_reaction:
-            if existing_reaction.type == action:
-                # 같은 리액션 제거 (토글)
-                db.session.delete(existing_reaction)
-                if action == 'LIKE':
-                    post.like_count = max(0, post.like_count - 1)
-                else:
-                    post.like_count = max(0, post.like_count - 1)
-            else:
-                # 다른 리액션으로 변경
-                existing_reaction.type = action
-                if action == 'LIKE':
-                    post.like_count += 1
-                    post.like_count = max(0, post.like_count - 1)
-                else:
-                    post.like_count = max(0, post.like_count - 1)
-                    post.like_count += 1
+            # 좋아요 제거
+            db.session.delete(existing_reaction)
+            post.like_count = max(0, post.like_count - 1)
         else:
-            # 새 리액션 추가
-            reaction = PostReaction(post_id=post_id, user_id=user_id, type=action)
+            # 좋아요 추가
+            reaction = PostReaction(post_id=post_id, user_id=user_id)
             db.session.add(reaction)
-            if action == 'LIKE':
-                post.like_count += 1
-            else:
-                post.like_count += 1
+            post.like_count += 1
         
         db.session.commit()
         return post

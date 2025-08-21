@@ -146,4 +146,8 @@ uploads/
 .DS_Store
 Thumbs.db
 
+# Docker
+*.tar
+post-service-image.tar
+
 

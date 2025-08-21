@@ -249,8 +249,13 @@ def list_posts():
             query = query.filter_by(category_id=category_id)
         
         if q:
-            # MySQL FULLTEXT 검색 사용
-            query = query.filter(db.text("MATCH(title, content_md) AGAINST(:q IN BOOLEAN MODE)"), q=q)
+            # SQLite에서는 LIKE 검색 사용
+            query = query.filter(
+                db.or_(
+                    Post.title.like(f'%{q}%'),
+                    Post.content_md.like(f'%{q}%')
+                )
+            )
 
         # 정렬 적용
         if sort == 'popular':

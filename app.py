@@ -28,7 +28,7 @@ def create_app(config_class=None):
     else:
         # 기본 설정
         app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:1234@localhost:3307/postdb?charset=utf8mb4'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///post_service.db'
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # 이미지 업로드 설정 (개발: 로컬, 운영: S3)
@@ -47,6 +47,12 @@ def create_app(config_class=None):
     # 데이터베이스 초기화
     db.init_app(app)
     Migrate(app, db)
+    
+    # 데이터베이스 테이블 생성 및 카테고리 초기화
+    with app.app_context():
+        db.create_all()
+        from post.models import init_categories
+        init_categories()
 
     # Swagger UI 설정
     SWAGGER_URL = '/api/docs'
@@ -142,7 +148,7 @@ def create_app(config_class=None):
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)
 
 
 

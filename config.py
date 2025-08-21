@@ -9,9 +9,9 @@ class Config:
     # 보안 키 (운영 환경에서는 반드시 환경 변수로 설정)
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     
-    # 데이터베이스 연결 (개발: localhost:3307, 운영: RDS 엔드포인트)
+    # 데이터베이스 연결 (SQLite 사용)
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'mysql+pymysql://root:1234@localhost:3307/postdb?charset=utf8mb4'
+        'sqlite:///post_service.db'
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
@@ -20,13 +20,8 @@ class Config:
     NOTIFICATION_SERVICE_URL = os.environ.get('NOTIFICATION_SERVICE_URL', 'http://localhost:8082')
     ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
     
-    # 데이터베이스 연결 풀 설정 (성능 최적화)
-    # MySQL/PostgreSQL에서만 사용 가능한 옵션들
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 10,
-        'pool_recycle': 3600,
-        'pool_pre_ping': True
-    }
+    # SQLite는 pool 옵션을 지원하지 않으므로 제거
+    # SQLALCHEMY_ENGINE_OPTIONS = {}
 
 class TestConfig(Config):
     """테스트용 설정"""
